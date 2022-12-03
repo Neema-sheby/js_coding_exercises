@@ -4,6 +4,11 @@
  */
 export const sumDigits = (n) => {
   if (n === undefined) throw new Error("n is required");
+  const sum = n
+    .toString()
+    .split("")
+    .reduce((prev, curr) => +prev + +curr, 0);
+  return sum;
 };
 
 /**
@@ -14,13 +19,18 @@ export const sumDigits = (n) => {
  * @param {Number} end
  * @param {Number} step
  */
-export const createRange = (start, end, step) => {
+export const createRange = (start, end, step = 1) => {
   if (start === undefined) throw new Error("start is required");
   if (end === undefined) throw new Error("end is required");
   if (step === undefined)
     console.log(
       "FYI: Optional step parameter not provided. Remove this check once you've handled the optional step!"
     );
+  const arr = [];
+  for (let i = start; i <= end; i += step) {
+    arr.push(i);
+  }
+  return arr;
 };
 
 /**
@@ -52,9 +62,28 @@ export const createRange = (start, end, step) => {
  * For example, if passed the above users and the date "2019-05-04" the function should return ["beth_1234"] as she used over 100 minutes of screentime on that date.
  * @param {Array} users
  */
-export const getScreentimeAlertList = (users, date) => {
+export const getScreentimeAlertList = (users, dat) => {
   if (users === undefined) throw new Error("users is required");
-  if (date === undefined) throw new Error("date is required");
+  if (dat === undefined) throw new Error("date is required");
+
+  // Check the most usage
+  const userMostUsageArr = users
+    .filter((user) => {
+      const { screenTime } = user;
+      let tot = 0;
+      screenTime.forEach((e) => {
+        const { date, usage } = e;
+        if (date === dat) {
+          for (let key in usage) {
+            tot += +usage[key];
+          }
+        }
+      });
+      return tot > 100;
+    })
+    .map((user) => user.username);
+  // console.log(userMostUsageArr);
+  return userMostUsageArr;
 };
 
 /**
@@ -69,6 +98,13 @@ export const getScreentimeAlertList = (users, date) => {
  */
 export const hexToRGB = (hexStr) => {
   if (hexStr === undefined) throw new Error("hexStr is required");
+  const hexToRgb = hexStr
+    .replace("#", "")
+    .match(/.{2}/g)
+    .map((e) => parseInt(e, 16))
+    .join(",");
+
+  return `rgb(${hexToRgb})`;
 };
 
 /**
@@ -83,4 +119,62 @@ export const hexToRGB = (hexStr) => {
  */
 export const findWinner = (board) => {
   if (board === undefined) throw new Error("board is required");
+  let winner;
+  let colOne = [];
+  let colTwo = [];
+  let colThree = [];
+  let diagOne = [];
+  let diagTwo = [];
+
+  // //Check if player is a winner
+  const isPlayerWinner = (playerPos) => {
+    return playerPos.every((e, i, arr) => e === arr[0]);
+  };
+
+  //get column positions of player
+  const getCol = (col, colNum) => {
+    if (colNum === 0) colOne.push(col);
+    if (colNum === 1) colTwo.push(col);
+    if (colNum === 2) colThree.push(col);
+  };
+
+  //get diagonal positions of player
+  const getDiagonalOne = (rowNum, colNum, arr) => {
+    if (rowNum === colNum) {
+      diagOne.push(arr[colNum]);
+    }
+  };
+
+  const getDiagonalTwo = (rowNum, colNum, arr) => {
+    if (rowNum === 0 && colNum == arr.length - (rowNum + 1))
+      diagTwo.push(arr[colNum]);
+    else if (rowNum === 1 && colNum == arr.length - (rowNum + 1))
+      diagTwo.push(arr[colNum]);
+    else if (rowNum === 2 && colNum == arr.length - (rowNum + 1))
+      diagTwo.push(arr[colNum]);
+  };
+  for (let rowNum in board) {
+    rowNum = +rowNum;
+    // check rows
+    if (isPlayerWinner(board[rowNum])) {
+      winner = board[0][0];
+      break;
+    } else {
+      board[rowNum].forEach((player, colNum, arr) => {
+        getCol(player, colNum);
+        getDiagonalOne(rowNum, colNum, arr);
+        getDiagonalTwo(rowNum, colNum, arr);
+      });
+
+      // check columns
+      if (isPlayerWinner(colOne)) winner = colOne[0];
+      else if (isPlayerWinner(colTwo)) winner = colTwo[0];
+      else if (isPlayerWinner(colThree)) winner = colThree[0];
+      // check diagonals
+      else if (isPlayerWinner(diagOne)) winner = diagOne[0];
+      else if (isPlayerWinner(diagTwo)) winner = diagTwo[0];
+      else winner = null;
+    }
+  }
+  return winner;
 };
